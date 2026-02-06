@@ -3,13 +3,40 @@
 This folder contains chunked and normalized documentation
 used as the knowledge base for the RAG system.
 
-Documents here are derived from raw sources and prepared for embedding and retrieval.
+Data here is derived from `data/raw/` and prepared for embedding and retrieval.
 
-Each file typically contains:
+---
+
+## What Lives Here
+
+Typical contents:
+
 - Chunked text
 - Source metadata
-- Document references
+- JSONL caches of chunks
+
+Example:
+- `langchain/chunks.jsonl` — chunked LangChain docs
+
+---
+
+## Data ETL Phases
 
 Phase 1 focuses on selected LangChain and OpenAI documentation.
 
-Later phases will likely expand this corpus with LangGraph and LangSmith documentation.
+Later phases will likely expand this corpus with:
+- LangGraph
+- LangSmith
+- Additional domain-specific sources
+
+---
+
+## How This Data Is Created
+
+Processed data is generated from raw docs using chunking scripts.
+
+Example:
+
+```bash
+python scripts/chunk_langchain_docs.py
+

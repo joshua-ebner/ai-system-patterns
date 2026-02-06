@@ -1,8 +1,0 @@
-# Ignore all raw source documents
-langchain/**
-openai/**
-
-# But keep folder structure + READMEs
-!README.md
-!.gitignore
-

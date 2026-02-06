@@ -1,10 +1,20 @@
 # Raw Data
 
-Unmodified documentation pulled from original sources.
+This folder contains **unmodified documentation** pulled from upstream sources.
 
 Examples:
-- LangChain docs (md/mdx from Github)
+- LangChain docs (MD/MDX from GitHub)
 - OpenAI docs
 
-No cleaning or chunking is performed here.
+No cleaning, parsing, or chunking is performed here.
 
+---
+
+## Rebuilding This Folder
+
+Raw docs are **not committed to the repo** to avoid bloat and licensing issues.
+
+To pull the data:
+
+```bash
+bash scripts/pull_langchain_docs.sh

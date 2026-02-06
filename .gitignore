@@ -1,5 +1,39 @@
+# ---- secrets / env ----
+.env
+.env.*
+
+# ---- python ----
 .venv/
 __pycache__/
-.env
 *.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---- mac ----
 .DS_Store
+
+# ---- scratch ----
+tmp/
+
+# ---- RAW corpora (do not commit) ----
+data/raw/**
+!data/raw/
+!data/raw/langchain/
+!data/raw/openai/
+!data/raw/README.md
+!data/raw/**/README.md
+
+# ---- PROCESSED corpora (commit only samples/docs, not full text caches) ----
+data/processed/**/chunks.jsonl
+!data/processed/
+!data/processed/README.md
+!data/processed/**/README.md
+!data/processed/**/chunks.sample.jsonl
+!data/processed/**/manifest.json
+
+# ---- Vector DBs (never commit) ----
+data/vectorstore/**
+!data/vectorstore/
+!data/vectorstore/README.md
+
