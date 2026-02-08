@@ -23,7 +23,7 @@ PERSIST_DIR = BASE_DIR / "data/vectorstore/langchain_db"
 # Config
 # -------------------------
 K = 5
-MAX_DISTANCE = 1.2  # retrieval relevance threshold
+MAX_DISTANCE = 1.05  # retrieval relevance threshold
 
 
 # -------------------------
