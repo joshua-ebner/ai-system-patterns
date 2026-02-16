@@ -34,6 +34,20 @@ This keeps the architecture explicit and easy to reason about.
 
 ---
 
+## Evaluation & Observability
+
+This agent layer is evaluated using a small set of structured evaluation queries 
+(in-scope, borderline, and out-of-scope queries) to verify:
+
+- Proper tool usage
+- Correct refusal behavior
+- Consistent latency
+
+LangSmith tracing is enabled for step-level observability of
+LLM calls and tool execution.
+
+---
+
 ## Why This Layer Exists
 
 In real systems, retrieval pipelines and agent logic are often deployed
