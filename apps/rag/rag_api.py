@@ -1,3 +1,28 @@
+"""
+RAG FastAPI Service (v1)
+
+This module implements a Retrieval-Augmented Generation (RAG) microservice
+exposed via FastAPI.
+
+Responsibilities:
+- Accept natural-language queries via HTTP
+- Retrieve relevant document chunks from a Chroma vector store
+- Generate grounded answers using an LLM
+- Enforce conservative refusal behavior when context is insufficient
+- Log structured query/response data for evaluation and diagnostics
+
+Design notes:
+- Retrieval and generation are tightly scoped and deterministic
+  (temperature=0, distance thresholding).
+- The service is intentionally stateless and single-turn.
+- This API is treated as a dedicated retrieval service by the
+  agent layer (apps/agent), which calls it as an external tool.
+
+This separation mirrors production architectures where retrieval
+pipelines and agent orchestration are deployed as independent services.
+"""
+
+
 import json
 from datetime import datetime, timezone
 from pathlib import Path
