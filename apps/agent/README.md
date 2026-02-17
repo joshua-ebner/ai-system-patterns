@@ -46,6 +46,21 @@ This agent layer is evaluated using a small set of structured evaluation queries
 LangSmith tracing is enabled for step-level observability of
 LLM calls and tool execution.
 
+### Agent v1 Evaluation Snapshot
+
+Ran 18 evaluation queries:
+
+- Overall pass rate: 14/18 (77.8%)
+- Correct refusals: 4
+- Unexpected refusals: 2
+- Avg latency: 5.4s
+
+Common failure modes:
+- Missing context for some in-scope topics
+- Occasional variance in refusal phrasing causing missed refusals (e.g., the LLM sometimes responds with "I cannot answer this query.", which given our current refusal logic, does *not* count as a refusal.
+
+These results are acceptable for v1 and provide a baseline for future improvements.
+
 ---
 
 ## Why This Layer Exists
