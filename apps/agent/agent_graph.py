@@ -1,3 +1,24 @@
+"""
+Minimal LangGraph agent for orchestrating a RAG microservice.
+
+Design goals (v1):
+- Thin orchestration layer over a dedicated RAG API
+- Always route domain questions to retrieval
+- Preserve RAG refusal signals
+- Keep logic simple and explicit
+
+This agent is intentionally:
+- Single-turn
+- Stateless
+- Deterministic
+- Easy to inspect and evaluate
+
+Future versions may add:
+- Structured state
+- Retry/reformulation on refusal
+- Conditional routing
+"""
+
 from typing import TypedDict, Annotated, Any
 
 from langgraph.graph import StateGraph, END
