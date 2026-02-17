@@ -1,3 +1,22 @@
+"""
+LangChain tool wrapper for the RAG FastAPI service (`apps/rag/rag_api`).
+
+This module exposes the retrieval system as a LangChain tool so it can be
+used by a LangGraph agent as an external capability rather than embedding
+retrieval logic directly in the agent.
+
+Design goals:
+- Keep retrieval as a separate microservice boundary
+- Provide a thin, reliable HTTP wrapper over the RAG API
+- Preserve structured fields like `refused`, `sources`, and
+  `refusal_reason` for downstream logic and evaluation
+- Enable tracing of RAG calls via LangSmith
+
+This module intentionally contains minimal logic. All retrieval,
+grounding, and refusal decisions are delegated to the RAG service.
+"""
+
+
 from dotenv import load_dotenv
 load_dotenv()
 
