@@ -7,7 +7,7 @@ from pathlib import Path
 
 from langchain_core.messages import HumanMessage
 
-from apps.agent.agent_graph import agent
+from apps.agent_graph import agent
 
 
 # -------------------------
@@ -70,7 +70,10 @@ def main():
 
         try:
             result = agent.invoke(
-                {"messages": [HumanMessage(content=query)]}
+                {"messages": [HumanMessage(content=query)],
+                 "rag_result": None,
+                 "retry_count": 0,
+                 }
             )
             answer = result["messages"][-1].content
         except Exception as e:

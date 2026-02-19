@@ -30,8 +30,10 @@ def main():
         start = time.time()
 
         try:
-            result = agent.invoke(
-                {"messages": [HumanMessage(content=query)]}
+            result = agent.invoke({
+                "messages": [HumanMessage(content=query)],
+                "rag_result": None,
+                "retry_count": 0,}
             )
             answer = result["messages"][-1].content
         except Exception as e:
