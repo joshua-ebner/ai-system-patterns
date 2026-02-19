@@ -17,6 +17,14 @@ Future versions may add:
 - Structured state
 - Retry/reformulation on refusal
 - Conditional routing
+
+
+TODO (Agent v2 Roadmap)
+- Add structured rag_result to state
+- Add retry_count
+- Add single retry edge on refusal
+- Add query enhancement node
+
 """
 
 from typing import TypedDict, Annotated, Any
@@ -36,7 +44,8 @@ from .rag_query_tool import rag_query_tool
 
 class AgentState(TypedDict):
     messages: Annotated[list, add_messages]
-
+    rag_result: dict | None
+    retry_count: int
 
 # -------------------------
 # Model + Tool Binding
@@ -74,7 +83,11 @@ def agent_node(state: AgentState):
         [system_prompt] + state["messages"]
     )
 
-    return {"messages": [response]}
+    return {
+        "messages": [response],
+        "rag_result": state.get("rag_result"),   # NEW: preserve structured result
+        "retry_count": state.get("retry_count", 0),  # NEW: preserve retry count
+    }
 
 
 def tool_node(state: AgentState):
@@ -91,10 +104,13 @@ def tool_node(state: AgentState):
                 AIMessage(
                     content="I cannot answer this query."
                 )
-            ]
+            ],
+            "rag_result": None,  # NEW: explicitly return structured state
+            "retry_count": state.get("retry_count", 0),  # NEW
         }
 
     results = []
+    final_result: dict[str, Any] | None = None  # FIX: initialize before loop
 
     for call in tool_calls:
         if call["name"] == "rag_query_tool":
@@ -102,6 +118,8 @@ def tool_node(state: AgentState):
             result: dict[str, Any] = rag_query_tool.invoke(
                 call["args"]
             )
+            
+            final_result = result  # NEW: capture structured result
 
             if result.get("refused", False):
                 content = (
@@ -119,7 +137,10 @@ def tool_node(state: AgentState):
                 AIMessage(content=content)
             )
 
-    return {"messages": results}
+    return {"messages": results,
+            "rag_result": final_result,  # NEW: store structured RAG output
+            "retry_count": state.get("retry_count", 0),  # NEW
+            }
 
 
 # -------------------------
