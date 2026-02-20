@@ -1,3 +1,36 @@
+"""
+Offline evaluation runner for the LangGraph RAG agent.
+
+This script executes a set of structured evaluation queries against the
+agent and logs the results to a JSONL file for analysis.
+
+Each evaluation case includes:
+- a query
+- a must_refuse flag (whether the agent should decline to answer)
+
+For each run, this script records:
+- the agent's response
+- refusal detection (string heuristic, v1)
+- pass/fail outcome
+- latency
+
+Outputs are appended to:
+    evals/agent_eval_results_v1.jsonl
+
+Usage:
+    python evals/agent_run_evals_v1.py
+
+This runner serves as the baseline offline eval loop for:
+- refusal behavior
+- reliability tracking
+- latency measurement
+
+Future versions may integrate:
+- structured refusal signals
+- LangSmith trace tagging
+- automated miss harvesting
+"""
+
 from dotenv import load_dotenv
 load_dotenv()
 
