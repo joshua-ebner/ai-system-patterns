@@ -1,3 +1,43 @@
+"""
+Offline evaluation runner for the RAG FastAPI service.
+
+This script sends structured evaluation queries to the running
+RAG API (/query endpoint) and logs system-level retrieval results.
+
+Each evaluation case includes:
+- a query
+- expected document sources
+- a must_refuse flag
+
+For each API response, this script records:
+- the generated answer
+- model refusal behavior
+- retrieved sources
+- retrieval hit/miss outcome
+- latency
+- HTTP status
+
+Outputs are appended to:
+    evals/rag_api_eval_results_v1.jsonl
+
+Usage:
+    1) Start the RAG FastAPI service
+    2) Run:
+        python evals/rag_run_api_evals_v1.py
+
+This runner provides baseline end-to-end evaluation of:
+- retrieval correctness
+- refusal logic
+- API reliability
+- system latency
+
+Future versions may integrate:
+- query enhancement
+- retrieval validation
+- LangSmith trace tagging
+- automated miss harvesting
+"""
+
 import json
 import time
 from pathlib import Path
