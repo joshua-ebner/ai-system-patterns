@@ -1,3 +1,24 @@
+"""
+Offline retrieval evaluation for the RAG vector store.
+
+This script tests the retrieval layer in isolation by:
+- Running evaluation queries against the persisted Chroma vector DB
+- Filtering results by similarity distance threshold
+- Comparing retrieved document sources to expected sources
+
+Purpose:
+- Diagnose retrieval failures independently of generation logic
+- Tune distance threshold (MAX_DISTANCE)
+- Measure retrieval hit rate for in-scope queries
+- Identify cases that should produce refusal due to missing context
+
+This evaluation is run before:
+- API-level RAG evals
+- Agent-level reasoning evals
+
+... to ensure retrieval quality is not the primary source of downstream errors.
+"""
+
 import json
 from pathlib import Path
 from typing import List, Tuple
