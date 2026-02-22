@@ -56,7 +56,11 @@ def retrieve(
     k: int = K,
 ) -> List[Tuple[Document, float]]:
     results = vectordb.similarity_search_with_score(query, k=k)
-    filtered = [(document, distance) for document, distance in results if distance <= MAX_DISTANCE]
+    filtered = [
+        (document, distance)
+        for document, distance in results
+        if distance <= MAX_DISTANCE
+    ]
     return filtered
 
 
@@ -84,7 +88,6 @@ def main():
     correct_refusals = 0
     passes = 0
 
-
     print("==== Running RAG Eval v1 ====\n")
 
     # -------------------------
@@ -96,9 +99,10 @@ def main():
         eval_query = eval_case["query"]
         expected_sources = set(eval_case["expected_sources"])
         must_refuse = eval_case["must_refuse"]
+
         if not must_refuse:
-            in_scope_total += 1  
-            
+            in_scope_total += 1
+
         print(f"--- {eval_id} ---")
         print(f"Q: {eval_query}")
 
@@ -108,20 +112,14 @@ def main():
         # -------------------------
         # Case 1: No relevant retrieval
         # -------------------------
-        # This is expected for:
-        # - out-of-scope queries
-        # - queries with insufficient grounding context
         if not results:
             print("No relevant retrieval.\n")
 
-            # If this query should have refused,
-            # retrieval miss is a PASS (correct behavior)
             if must_refuse:
                 correct_refusals += 1
                 passes += 1
                 print("✓ Correct refusal expected\n")
             else:
-                # In-scope query failed to retrieve relevant docs
                 print("✗ Retrieval miss\n")
 
             continue
@@ -129,7 +127,6 @@ def main():
         # -------------------------
         # Case 2: Relevant docs retrieved
         # -------------------------
-        # Extract source filenames from retrieved metadata
         retrieved_sources = {
             Path(doc.metadata.get("source", "")).name
             for doc, _ in results
@@ -140,33 +137,28 @@ def main():
         # Retrieval "hit" occurs if any expected source is found
         hit = bool(expected_sources & retrieved_sources)
 
-        if hit:
-            retrieval_hits += 1
-
         # -------------------------
         # Pass / fail logic
         # -------------------------
         if must_refuse:
-            # Retrieval occurred when refusal was expected.
-            # This indicates the retriever surfaced grounding
-            # context incorrectly → treat as failure.
             print("✗ Should have refused\n")
         else:
-            # In-scope query
             if hit:
+                retrieval_hits += 1
                 passes += 1
                 print("✓ Retrieval hit\n")
             else:
                 print("✗ Retrieved but wrong docs\n")
 
-
     # -------------------------
     # Summary
     # -------------------------
+    hit_rate = retrieval_hits / in_scope_total if in_scope_total > 0 else 0
+
     print("\n==== Summary ====")
     print(f"Total queries: {total}")
-    print(f"In-scope queries: {in_scope_total}") 
-    print(f"Retrieval hit rate: {retrieval_hits}/{in_scope_total}")  
+    print(f"In-scope queries: {in_scope_total}")
+    print(f"Retrieval hit rate: {retrieval_hits}/{in_scope_total} ({hit_rate:.2%})")
     print(f"Correct refusals: {correct_refusals}")
     print(f"Overall passes: {passes}/{total}")
     print("==================\n")
