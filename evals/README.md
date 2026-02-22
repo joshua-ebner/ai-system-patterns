@@ -112,17 +112,17 @@ Start the RAG API:
 uvicorn apps.rag.rag_api:app --reload
 ```
 
-Run:
+Run these commands from the project root:
 
 ```bash
-python evals/rag_run_api_evals_v1.py
+python -m evals.rag_run_api_evals_v1
 ```
 
 ## Agent evals
 
 Run directly:
 ```bash
-python evals/agent_run_evals_v1.py
+python -m evals.agent_run_evals_v1
 ```
 
 (No API server required; this invokes the agent graph directly.)
