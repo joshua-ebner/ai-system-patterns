@@ -41,6 +41,22 @@ A RAG/agent system grounded in real AI engineering documentation (LangChain, Ope
 At the same time, the repository serves as **external proof of RAG and agent engineering ability.**
 
 ---
+## Architecture (V1)
+
+flowchart LR
+  U[User] --> A[Agent Layer\nLangGraph\napps/agent]
+  A -->|HTTP POST /query| R[RAG Service\nFastAPI\napps/rag/rag_api.py]
+
+  R --> V[(Chroma\nVector Store)]
+  R --> M[(LLM\nChatOpenAI)]
+
+  A --> L[(JSONL Logs\nlogs/agent_runs_v1.jsonl)]
+  R --> L2[(JSONL Logs\nlogs/rag_queries_v1.jsonl)]
+
+  A --> S[LangSmith Tracing]
+  R --> S
+
+---
 
 ## Current Status
 
