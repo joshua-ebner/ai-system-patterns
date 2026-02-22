@@ -40,6 +40,7 @@ from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
+from langsmith import traceable
 
 
 # -------------------------
@@ -142,6 +143,66 @@ def log_query(payload: Dict[str, Any]) -> None:
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(payload, ensure_ascii=False) + "\n")
 
+# -------------------------
+# Traced RAG execution
+# -------------------------
+@traceable(name="rag_api_query")
+def handle_query(q: str) -> QueryResponse:
+    """
+    Traced wrapper for retrieval + generation.
+
+    This exists primarily to make LangSmith traces easier to read by
+    grouping the full /query execution under one parent span.
+    """
+    assert _vectordb is not None and _llm is not None
+
+    retrieved = retrieve(_vectordb, q, k=K)
+
+    # Refusal: no retrieval
+    if not retrieved:
+        return QueryResponse(
+            query=q,
+            refused=True,
+            answer=REFUSAL_TEXT,
+            sources=[],
+            refusal_reason="no_relevant_chunks",
+        )
+
+    # Generation
+    context = format_context(retrieved)
+
+    prompt = f"""
+You are a careful RAG assistant.
+
+Answer the user's question using ONLY the provided context.
+
+If the context is insufficient, respond with exactly:
+"{REFUSAL_TEXT}"
+
+Question:
+{q}
+
+Context:
+{context}
+
+Answer:
+""".strip()
+
+    answer = _llm.invoke(prompt).content.strip()
+
+    sources = build_sources(retrieved)
+
+    refused = answer == REFUSAL_TEXT
+    refusal_reason = "llm_self_refusal" if refused else None
+
+    return QueryResponse(
+        query=q,
+        refused=refused,
+        answer=answer,
+        sources=sources,
+        refusal_reason=refusal_reason,
+    )
+
 
 # -------------------------
 # Startup
@@ -187,94 +248,24 @@ def query_endpoint(req: QueryRequest) -> QueryResponse:
     request_id = str(uuid.uuid4())
 
     q = req.query.strip()
-    retrieved = retrieve(_vectordb, q, k=K)
-
-    # -------------------------
-    # Refusal: no retrieval
-    # -------------------------
-    if not retrieved:
-
-        latency = time.time() - start_time
-
-        refusal_reason = "no_relevant_chunks"
-
-        response = QueryResponse(
-            query=q,
-            refused=True,
-            answer=REFUSAL_TEXT,
-            sources=[],
-            refusal_reason=refusal_reason,
-        )
-
-        log_query({
-            "ts": datetime.now(timezone.utc).isoformat(),
-            "request_id": request_id,
-            "query": q,
-            "answer": response.answer,
-            "refused": True,
-            "refusal_reason": refusal_reason,
-            "sources": [],
-            "num_chunks": 0,
-            "latency_sec": latency,
-            "embed_model": EMBED_MODEL,
-            "llm_model": LLM_MODEL,
-            "k": K,
-            "max_distance": MAX_DISTANCE,
-        })
-
-        return response
-
-    # -------------------------
-    # Generation
-    # -------------------------
-    context = format_context(retrieved)
-
-    prompt = f"""
-You are a careful RAG assistant.
-
-Answer the user's question using ONLY the provided context.
-
-If the context is insufficient, respond with exactly:
-"I don't have enough relevant context to answer confidently."
-
-Question:
-{q}
-
-Context:
-{context}
-
-Answer:
-""".strip()
-
-    answer = _llm.invoke(prompt).content.strip()
-
-    sources = build_sources(retrieved)
-
-    refused = answer.strip() == REFUSAL_TEXT
-    refusal_reason = "llm_self_refusal" if refused else None
+    # Run traced RAG execution (retrieval + generation)
+    response = handle_query(q)
 
     latency = time.time() - start_time
 
-    response = QueryResponse(
-        query=q,
-        refused=refused,
-        answer=answer,
-        sources=sources,
-        refusal_reason=refusal_reason,
-    )
-
+    # Log (keep existing schema)
     log_query({
         "ts": datetime.now(timezone.utc).isoformat(),
         "request_id": request_id,
         "query": q,
-        "answer": answer,
-        "refused": refused,
-        "refusal_reason": refusal_reason,
+        "answer": response.answer,
+        "refused": response.refused,
+        "refusal_reason": response.refusal_reason,
         "sources": [
             {"source": s.source, "distance": s.distance}
-            for s in sources
+            for s in response.sources
         ],
-        "num_chunks": len(sources),
+        "num_chunks": len(response.sources),
         "latency_sec": latency,
         "embed_model": EMBED_MODEL,
         "llm_model": LLM_MODEL,
