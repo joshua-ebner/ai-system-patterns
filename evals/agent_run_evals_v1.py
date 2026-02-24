@@ -36,6 +36,7 @@ load_dotenv()
 
 import json
 import time
+from datetime import datetime
 from pathlib import Path
 
 from langchain_core.messages import HumanMessage
@@ -47,9 +48,13 @@ from apps.agent_graph import agent
 # Config
 # -------------------------
 BASE_DIR = Path(__file__).resolve().parents[1]
-
 EVAL_CASE_FILE = BASE_DIR / "evals/agent_eval_queries_v1.json"
-EVAL_LOG_FILE = BASE_DIR / "evals/agent_eval_results_v1.jsonl"
+
+
+# OUTPUT FILE
+run_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+version_label = "v2_escalation"
+EVAL_LOG_FILE = BASE_DIR / f"evals/agent/{run_date}_agent_eval_results_{version_label}.jsonl"
 
 
 # -------------------------
