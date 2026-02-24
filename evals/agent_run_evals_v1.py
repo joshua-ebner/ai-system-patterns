@@ -41,7 +41,7 @@ from pathlib import Path
 
 from langchain_core.messages import HumanMessage
 
-from apps.agent_graph import agent
+from apps.agent.agent_graph import agent
 
 
 # -------------------------
