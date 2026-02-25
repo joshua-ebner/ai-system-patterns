@@ -43,6 +43,8 @@ from langchain_core.messages import HumanMessage
 
 from apps.agent.agent_graph import agent
 
+import subprocess
+
 
 # -------------------------
 # Config
@@ -55,6 +57,32 @@ EVAL_CASE_FILE = BASE_DIR / "evals/agent_eval_queries_v1.json"
 run_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 version_label = "v2_escalation"
 EVAL_LOG_FILE = BASE_DIR / f"evals/agent/{run_date}_agent_eval_results_{version_label}.jsonl"
+
+
+# -------------------------
+# Run metadata (schema v2)
+# -------------------------
+EVAL_SCHEMA_VERSION = 2
+AGENT_VERSION = "v2_escalation"   # <-- update when you change agent logic
+RAG_VERSION = "v1"               # <-- update when retrieval pipeline changes
+MODEL_NAME = "gpt-4o-mini"       # <-- must match the model used in the agent graph
+
+RUN_TIMESTAMP = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+
+def get_git_commit_short() -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            stderr=subprocess.DEVNULL,
+        ).decode("utf-8").strip()
+    except Exception:
+        return "unknown"
+
+
+GIT_COMMIT = get_git_commit_short()
+RUN_ID = f"{RUN_TIMESTAMP}_{AGENT_VERSION}"
+
 
 
 # -------------------------
@@ -163,6 +191,15 @@ def main():
         # Log structured result
         # -------------------------
         log_eval_result({
+            # --- Run-level metadata (NEW) ---
+            "eval_schema_version": EVAL_SCHEMA_VERSION,
+            "run_id": RUN_ID,
+            "agent_version": AGENT_VERSION,
+            "rag_version": RAG_VERSION,
+            "model": MODEL_NAME,
+            "git_commit": GIT_COMMIT,
+        
+            # --- Per-example data (existing) ---
             "ts": time.time(),
             "eval_id": eval_id,
             "query": query,
@@ -173,6 +210,7 @@ def main():
             "passed": passed,
             "latency_sec": latency,
         })
+        #
 
     # -------------------------
     # Summary report
