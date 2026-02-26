@@ -14,8 +14,8 @@ For each run, this script records:
 - pass/fail outcome
 - latency
 
-Outputs are appended to:
-    evals/agent_eval_results_v1.jsonl
+Outputs are recorded in:
+    evals/agent/<timestamp>_agent_eval_results_v2_escalation.jsonl
 
 Usage:
     python evals/agent_run_evals_v1.py
@@ -34,8 +34,10 @@ Future versions may integrate:
 from dotenv import load_dotenv
 load_dotenv()
 
+import os
 import json
 import time
+
 from datetime import datetime
 from pathlib import Path
 
@@ -53,12 +55,6 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 EVAL_CASE_FILE = BASE_DIR / "evals/agent_eval_queries_v1.json"
 
 
-# OUTPUT FILE
-run_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-version_label = "v2_escalation"
-EVAL_LOG_FILE = BASE_DIR / f"evals/agent/{run_date}_agent_eval_results_{version_label}.jsonl"
-
-
 # -------------------------
 # Run metadata (schema v2)
 # -------------------------
@@ -66,8 +62,12 @@ EVAL_SCHEMA_VERSION = 2
 AGENT_VERSION = "v2_escalation"   # <-- update when you change agent logic
 RAG_VERSION = "v1"               # <-- update when retrieval pipeline changes
 MODEL_NAME = "gpt-4o-mini"       # <-- must match the model used in the agent graph
-
 RUN_TIMESTAMP = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+RUN_ID = f"{RUN_TIMESTAMP}_{AGENT_VERSION}"
+
+# OUTPUT FILE
+EVAL_LOG_FILE = BASE_DIR / f"evals/agent/{RUN_TIMESTAMP}_agent_eval_results_{AGENT_VERSION}.jsonl"
+
 
 
 def get_git_commit_short() -> str:
@@ -79,10 +79,7 @@ def get_git_commit_short() -> str:
     except Exception:
         return "unknown"
 
-
 GIT_COMMIT = get_git_commit_short()
-RUN_ID = f"{RUN_TIMESTAMP}_{AGENT_VERSION}"
-
 
 
 # -------------------------
@@ -93,6 +90,54 @@ def log_eval_result(payload: dict):
     EVAL_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(EVAL_LOG_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(payload) + "\n")
+
+
+
+#---------------------------
+# RUN PERFORMANCE SUMMARIZER
+#---------------------------
+def write_run_summary(
+    run_id: str,
+    agent_version: str,
+    rag_version: str,
+    model: str,
+    git_commit: str,
+    total: int,
+    passed: int,
+    correct_refusals: int,
+    unexpected_refusals: int,
+    avg_latency_sec: float,
+    failed_eval_ids: list[str],
+):
+    """
+    Write run-level summary metrics for a single agent eval run.
+    """
+
+    os.makedirs("evals/agent/runs", exist_ok=True)
+
+    summary = {
+        "run_id": run_id,
+        "agent_version": agent_version,
+        "rag_version": rag_version,
+        "model": model,
+        "git_commit": git_commit,
+        "total": total,
+        "passed": passed,
+        "failed": total - passed,
+        "correct_refusals": correct_refusals,
+        "unexpected_refusals": unexpected_refusals,
+        "pass_rate": passed / total if total else 0.0,
+        "avg_latency_sec": avg_latency_sec,
+        "failed_eval_ids": failed_eval_ids,
+    }
+
+    output_path = f"evals/agent/runs/{run_id}_summary.json"
+
+    with open(output_path, "w") as f:
+        json.dump(summary, f, indent=2)
+
+    print(f"\nSummary written to {output_path}")
+
 
 
 # -------------------------
@@ -115,6 +160,8 @@ def main():
     unexpected_refusals = 0
     total_passes = 0
     total_latency = 0.0
+
+    results = []
 
     print("\n==== Agent Eval v1 ====\n")
 
@@ -187,6 +234,11 @@ def main():
                 passed = True
                 print("✓ Pass\n")
 
+        results.append({
+            "eval_id": eval_id,
+            "passed": passed,
+            })
+
         # -------------------------
         # Log structured result
         # -------------------------
@@ -222,6 +274,22 @@ def main():
     print(f"Overall passes: {total_passes}/{total}")
     print(f"Avg latency: {total_latency/total:.2f}s")
     print("==================\n")
+
+    failed_eval_ids = [r["eval_id"] for r in results if not r["passed"]]
+    
+    write_run_summary(
+        run_id=RUN_ID,
+        agent_version=AGENT_VERSION,
+        rag_version=RAG_VERSION,
+        model=MODEL_NAME,
+        git_commit=GIT_COMMIT,
+        total=total,
+        passed=total_passes,
+        correct_refusals=correct_refusals,
+        unexpected_refusals=unexpected_refusals,
+        avg_latency_sec=(total_latency / total) if total else 0.0,
+        failed_eval_ids=failed_eval_ids,
+    )
 
 
 if __name__ == "__main__":
