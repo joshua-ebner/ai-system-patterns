@@ -42,3 +42,13 @@ logs/
 
 # ---- Evaluation Logs ----
 evals/*.jsonl
+
+# --- Routine agent eval artifacts ---
+evals/agent/runs/
+evals/agent/*.jsonl
+
+# --- Keep curated baselines ---
+!evals/agent/baselines/
+!evals/agent/baselines/*.jsonl
+!evals/agent/baselines/*.json
+
