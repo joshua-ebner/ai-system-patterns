@@ -181,6 +181,12 @@ def main():
         # ---- Invoke agent and time execution ----
         start = time.time()
 
+        
+        # initialize RAG retrieval variables
+        retrieved_count = None
+        top_distance = None
+        retry_count = None
+
         try:
             result = agent.invoke(
                 {"messages": [HumanMessage(content=query)],
@@ -189,6 +195,10 @@ def main():
                  }
             )
             answer = result["messages"][-1].content
+            rag_result = result.get("rag_result") or {}
+            retrieved_count = rag_result.get("retrieved_count")
+            top_distance = rag_result.get("top_distance")
+            retry_count = result.get("retry_count")
         except Exception as e:
             answer = f"Agent error: {str(e)}"
 
@@ -261,6 +271,9 @@ def main():
             "refused": refused,
             "passed": passed,
             "latency_sec": latency,
+            "log_retrieved_count": retrieved_count,
+            "log_top_distance": top_distance,
+            "log_retry_count": retry_count,
         })
         #
 

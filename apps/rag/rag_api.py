@@ -91,6 +91,8 @@ class QueryResponse(BaseModel):
     answer: str
     sources: List[SourceHit]
     refusal_reason: str | None = None
+    retrieved_count: int
+    top_distance: float | None
 
 
 # -------------------------
@@ -157,6 +159,8 @@ def handle_query(q: str) -> QueryResponse:
     assert _vectordb is not None and _llm is not None
 
     retrieved = retrieve(_vectordb, q, k=K)
+    retrieved_count = len(retrieved)
+    top_distance = retrieved[0][1] if retrieved else None
 
     # Refusal: no retrieval
     if not retrieved:
@@ -166,6 +170,8 @@ def handle_query(q: str) -> QueryResponse:
             answer=REFUSAL_TEXT,
             sources=[],
             refusal_reason="no_relevant_chunks",
+            retrieved_count=0,
+            top_distance=None,
         )
 
     # Generation
@@ -201,6 +207,8 @@ Answer:
         answer=answer,
         sources=sources,
         refusal_reason=refusal_reason,
+        retrieved_count=retrieved_count,
+        top_distance=top_distance,
     )
 
 
@@ -271,6 +279,8 @@ def query_endpoint(req: QueryRequest) -> QueryResponse:
         "llm_model": LLM_MODEL,
         "k": K,
         "max_distance": MAX_DISTANCE,
+        "retrieved_count": response.retrieved_count,
+        "top_distance": response.top_distance,
     })
 
     return response
