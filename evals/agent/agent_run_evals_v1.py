@@ -15,10 +15,10 @@ For each run, this script records:
 - latency
 
 Outputs are recorded in:
-    evals/agent/<timestamp>_agent_eval_results_v2_escalation.jsonl
+    evals/agent/logs/runs/<timestamp>_agent_eval_results_v2_escalation.jsonl
 
 Usage:
-    python evals/agent_run_evals_v1.py
+    python evals/agent/agent_run_evals_v1.py
 
 This runner serves as the baseline offline eval loop for:
 - refusal behavior
@@ -52,7 +52,7 @@ import subprocess
 # Config
 # -------------------------
 BASE_DIR = Path(__file__).resolve().parents[1]
-EVAL_CASE_FILE = BASE_DIR / "evals/agent_eval_queries_v1.json"
+EVAL_CASE_FILE = BASE_DIR / "evals/agent/agent_eval_queries_v1.json"
 
 
 # -------------------------
@@ -66,7 +66,7 @@ RUN_TIMESTAMP = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 RUN_ID = f"{RUN_TIMESTAMP}_{AGENT_VERSION}"
 
 # OUTPUT FILE
-EVAL_LOG_FILE = BASE_DIR / f"evals/agent/{RUN_TIMESTAMP}_agent_eval_results_{AGENT_VERSION}.jsonl"
+EVAL_LOG_FILE = BASE_DIR / f"evals/agent/logs/runs/{RUN_TIMESTAMP}_agent_eval_results_{AGENT_VERSION}.jsonl"
 
 
 
@@ -113,7 +113,7 @@ def write_run_summary(
     Write run-level summary metrics for a single agent eval run.
     """
 
-    os.makedirs("evals/agent/runs", exist_ok=True)
+    os.makedirs("evals/agent/logs/runs", exist_ok=True)
 
     summary = {
         "run_id": run_id,
@@ -131,7 +131,7 @@ def write_run_summary(
         "failed_eval_ids": failed_eval_ids,
     }
 
-    output_path = f"evals/agent/runs/{run_id}_summary.json"
+    output_path = f"evals/agent/logs/runs/{run_id}_summary.json"
 
     with open(output_path, "w") as f:
         json.dump(summary, f, indent=2)
@@ -163,7 +163,7 @@ def main():
 
     results = []
 
-    print("\n==== Agent Eval v1 ====\n")
+    print(f"\n==== Agent Eval (schema v{EVAL_SCHEMA_VERSION}) ====\n")
 
     # -------------------------
     # Main evaluation loop

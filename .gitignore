@@ -38,17 +38,15 @@ data/vectorstore/**
 !data/vectorstore/README.md
 
 # ---- System Logs ----
-logs/
+/logs/
 
-# ---- Evaluation Logs ----
+# ---- Evaluation Artifacts  ----
 evals/*.jsonl
 
-# --- Routine agent eval artifacts ---
-evals/agent/runs/
-evals/agent/*.jsonl
+# Ignore all evaluation run artifacts
+evals/**/logs/runs/
 
 # --- Keep curated baselines ---
-!evals/agent/baselines/
-!evals/agent/baselines/*.jsonl
-!evals/agent/baselines/*.json
-
+!evals/**/logs/baselines/
+!evals/**/logs/baselines/*.jsonl
+!evals/**/logs/baselines/*.json

@@ -17,13 +17,13 @@ For each API response, this script records:
 - latency
 - HTTP status
 
-Outputs are appended to:
-    evals/rag_api_eval_results_v1.jsonl
+Outputs are saved to:
+    evals/rag/logs/runs/<timestamp>_rag_api_eval_results_v1.jsonl
 
 Usage:
     1) Start the RAG FastAPI service
     2) Run:
-        python evals/rag_run_api_evals_v1.py
+        python evals/rag/rag_run_api_evals_v1.py
 
 This runner provides baseline end-to-end evaluation of:
 - retrieval correctness
@@ -43,16 +43,19 @@ import time
 from pathlib import Path
 
 import requests
+from datetime import datetime
+
 
 
 # -------------------------
 # Config
 # -------------------------
 API_URL = "http://127.0.0.1:8000/query"
+RUN_TIMESTAMP = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-EVAL_CASE_FILE = BASE_DIR / "evals/rag_eval_queries_v1.json"
-EVAL_LOG_FILE = BASE_DIR / "evals/rag_api_eval_results_v1.jsonl"
+EVAL_CASE_FILE = BASE_DIR / "evals/rag/rag_eval_queries_v1.json"
+EVAL_LOG_FILE = BASE_DIR / f"evals/rag/logs/runs/{RUN_TIMESTAMP}_rag_api_eval_results_v1.jsonl"
 
 
 TIMEOUT = 60

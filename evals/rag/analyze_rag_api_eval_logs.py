@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from statistics import mean, median
 
-EVAL_LOG_FILE = Path("evals/rag_api_eval_results_v1.jsonl")
+EVAL_LOG_FILE = Path("evals/rag/logs/runs/rag_api_eval_results_v1.jsonl")
 
 
 def main():

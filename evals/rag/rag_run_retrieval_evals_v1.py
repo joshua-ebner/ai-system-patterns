@@ -36,7 +36,7 @@ from langchain_core.documents import Document
 # -------------------------
 BASE_DIR = Path(__file__).resolve().parents[1]
 
-EVAL_FILE = BASE_DIR / "evals/rag_eval_queries_v1.json"
+EVAL_FILE = BASE_DIR / "evals/rag/rag_eval_queries_v1.json"
 PERSIST_DIR = BASE_DIR / "data/vectorstore/langchain_db"
 
 
