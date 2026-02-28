@@ -1,0 +1,27 @@
+
+services:
+  rag-api:
+    build:
+      context: .
+      dockerfile: apps/rag/Dockerfile
+    container_name: rag-api
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    container_name: agent
+    env_file:
+      - .env
+    environment:
+      - RAG_API_URL=http://rag-api:8000/query
+    depends_on:
+      - rag-api
+    stdin_open: true
+    tty: true
