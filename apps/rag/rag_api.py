@@ -93,6 +93,7 @@ class QueryResponse(BaseModel):
     refusal_reason: str | None = None
     retrieved_count: int
     top_distance: float | None
+    retry_count: int
 
 
 # -------------------------
@@ -172,6 +173,7 @@ def handle_query(q: str) -> QueryResponse:
             refusal_reason="no_relevant_chunks",
             retrieved_count=0,
             top_distance=None,
+            retry_count=0,
         )
 
     # Generation
@@ -209,6 +211,7 @@ Answer:
         refusal_reason=refusal_reason,
         retrieved_count=retrieved_count,
         top_distance=top_distance,
+        retry_count=0,
     )
 
 
@@ -281,6 +284,7 @@ def query_endpoint(req: QueryRequest) -> QueryResponse:
         "max_distance": MAX_DISTANCE,
         "retrieved_count": response.retrieved_count,
         "top_distance": response.top_distance,
+        "retry_count": response.retry_count,
     })
 
     return response
