@@ -160,6 +160,10 @@ def main():
     unexpected_refusals = 0
     total_passes = 0
     total_latency = 0.0
+    total_retrieved_count = 0
+    total_top_distance = 0.0
+    total_retry_count = 0
+    diagnostic_samples = 0
 
     results = []
 
@@ -199,8 +203,15 @@ def main():
             retrieved_count = rag_result.get("retrieved_count")
             top_distance = rag_result.get("top_distance")
             retry_count = result.get("retry_count")
-        except Exception as e:
-            answer = f"Agent error: {str(e)}"
+            if retrieved_count is not None:
+                total_retrieved_count += retrieved_count
+            if top_distance is not None:
+                total_top_distance += top_distance
+                diagnostic_samples += 1
+            if retry_count is not None:
+                total_retry_count += retry_count
+                    except Exception as e:
+                        answer = f"Agent error: {str(e)}"
 
         latency = time.time() - start
         total_latency += latency
