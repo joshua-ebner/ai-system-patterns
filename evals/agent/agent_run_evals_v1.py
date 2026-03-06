@@ -108,6 +108,9 @@ def write_run_summary(
     unexpected_refusals: int,
     avg_latency_sec: float,
     failed_eval_ids: list[str],
+    avg_retrieved_count: float,
+    avg_top_distance: float | None,
+    avg_retry_count: float,
 ):
     """
     Write run-level summary metrics for a single agent eval run.
@@ -129,6 +132,9 @@ def write_run_summary(
         "pass_rate": passed / total if total else 0.0,
         "avg_latency_sec": avg_latency_sec,
         "failed_eval_ids": failed_eval_ids,
+        "avg_retrieved_count": avg_retrieved_count,
+        "avg_top_distance": avg_top_distance,
+        "avg_retry_count": avg_retry_count,
     }
 
     output_path = f"evals/agent/logs/runs/{run_id}_summary.json"
@@ -210,8 +216,9 @@ def main():
                 diagnostic_samples += 1
             if retry_count is not None:
                 total_retry_count += retry_count
-                    except Exception as e:
-                        answer = f"Agent error: {str(e)}"
+        except Exception as e:
+            answer = f"Agent error: {str(e)}"
+            passed = False
 
         latency = time.time() - start
         total_latency += latency
@@ -313,6 +320,9 @@ def main():
         unexpected_refusals=unexpected_refusals,
         avg_latency_sec=(total_latency / total) if total else 0.0,
         failed_eval_ids=failed_eval_ids,
+        avg_retrieved_count=(total_retrieved_count / total) if total else 0.0,
+        avg_top_distance=(total_top_distance / diagnostic_samples) if diagnostic_samples else None,
+        avg_retry_count=(total_retry_count / total) if total else 0.0,
     )
 
 
