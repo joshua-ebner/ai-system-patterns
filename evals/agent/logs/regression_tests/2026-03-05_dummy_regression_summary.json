@@ -1,0 +1,20 @@
+{
+  "run_id": "2026-03-05_22-06-25_dummy_regression",
+  "agent_version": "dummy_regression",
+  "rag_version": "v1",
+  "model": "gpt-4o-mini",
+  "git_commit": "119fa87",
+  "total": 18,
+  "passed": 16,
+  "failed": 2,
+  "correct_refusals": 6,
+  "unexpected_refusals": 2,
+  "pass_rate": 0.8888888888888889,
+  "avg_latency_sec": 8.54136323928833,
+  "failed_eval_ids": [
+    "agent-012"
+  ],
+  "avg_retrieved_count": 2.888888888888889,
+  "avg_top_distance": 0.8468102763096491,
+  "avg_retry_count": 0.8888888888888888
+}
