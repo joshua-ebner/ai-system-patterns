@@ -51,7 +51,7 @@ import subprocess
 # -------------------------
 # Config
 # -------------------------
-BASE_DIR = Path(__file__).resolve().parents[1]
+BASE_DIR = Path(__file__).resolve().parents[2]
 EVAL_CASE_FILE = BASE_DIR / "evals/agent/agent_eval_queries_v1.json"
 
 
