@@ -1,149 +1,195 @@
-# Evals
+# Evaluations
 
-This directory contains evaluation datasets, runners, and logs for the RAG service and agent layer.
+This directory contains the evaluation infrastructure for the AI Engineering Patterns repo.
 
-The goal is to make system quality **measurable and repeatable**, not anecdotal.
+The evaluation system is designed to support:
 
-Evals are intentionally lightweight and JSON-based so they are easy to extend and automate.
+- structured offline testing of agent and RAG behavior
+- reproducible run artifacts
+- pinned baselines for regression comparison
+- lightweight regression testing and CI gating
 
----
+The current evaluation stack is organized by domain:
 
-# Structure
-
-## Query Sets
-
-### `rag_eval_queries_v1.json`
-
-Baseline RAG evaluation set.
-
-Mix of in-scope and out-of-scope queries.
-
-Includes:
-
-- `query`
-- `expected_sources`
-- `must_refuse`
-- notes for human reference
-
-Used to evaluate retrieval quality and refusal behavior.
+- `agent/` → agent-level offline evals
+- `rag/` → RAG-specific evals and analysis
+- `tools/` → evaluation utilities such as run comparison
 
 ---
 
-### `agent_eval_queries_v1.json`
+## Directory Structure
 
-Agent-level evaluation set.
-
-Tests agent behavior on top of RAG.
-
-Focuses on:
-
-- Proper refusals  
-- Stable answering on in-scope queries
-
-Uses:
-
-- `query`
-- `category`
-- `must_refuse`
-
----
-
-## Runners
-
-### `rag_run_api_evals_v1.py`
-
-Runs evals against the RAG FastAPI service.
-
-Measures:
-
-- Retrieval hit rate  
-- Refusal correctness  
-- Latency  
-- Source overlap  
-
-Writes JSONL logs for later analysis.
-
----
-
-### `agent_run_evals_v1.py`
-
-Runs evals directly against the LangGraph agent.
-
-Measures:
-
-- Correct refusals  
-- Unexpected refusals  
-- Overall pass rate  
-- Latency  
-
-This evaluates orchestration behavior, not raw retrieval.
-
----
-
-## Logs & Analysis
-
-### `rag_api_eval_results_v1.jsonl`
-
-Raw per-query logs from RAG API evals.
-
----
-
-### `analyze_rag_api_eval_logs.py`
-
-Utility script for summarizing RAG eval logs.
-
----
-
-### `eval_log.md`
-
-Human-written notes summarizing past eval runs, thresholds, and observations.
-
-Used as a lightweight experiment journal.
-
----
-
-# How to Run
-
-## RAG API evals
-
-Start the RAG API:
-
-```bash
-uvicorn apps.rag.rag_api:app --reload
+```text
+evals/
+├── agent/
+│   ├── agent_eval_queries_v1.json
+│   ├── agent_run_evals_v1.py
+│   ├── LOG_SCHEMA.md
+│   └── logs/
+│       ├── baselines/
+│       ├── regression_tests/
+│       └── runs/
+├── rag/
+│   ├── analyze_rag_api_eval_logs.py
+│   ├── RAG_eval_log.md
+│   ├── rag_eval_queries_v1.json
+│   ├── rag_run_api_evals_v1.py
+│   ├── rag_run_retrieval_evals_v1.py
+│   └── logs/
+│       ├── baselines/
+│       └── runs/
+├── tools/
+│   └── compare_agent_runs.py
+└── README.md
 ```
 
-Run these commands from the project root:
+## Overview
+
+There are three main parts of the evaluation system:
+
+- `agent/` — evaluation assets and logs for the LangGraph agent
+- `rag/` — evaluation assets and logs for the standalone RAG API
+- `tools/` — utility scripts for comparing evaluation results
+
+## Agent Evaluation
+
+The agent evaluation flow tests the end-to-end behavior of the LangGraph agent.
+
+Each evaluation case includes:
+
+- a query
+- a `must_refuse` flag
+- an optional category
+
+The agent eval runner executes all cases, records per-example results to JSONL, and writes a run summary JSON containing aggregate metrics.
+
+### Main files
+
+- `agent/agent_eval_queries_v1.json` — evaluation dataset
+- `agent/agent_run_evals_v1.py` — offline agent evaluation runner
+- `agent/LOG_SCHEMA.md` — documentation for the structured log format
+
+### Logged metrics
+
+Per-example logs include:
+
+- query
+- answer
+- refusal detection
+- pass/fail outcome
+- latency
+- retrieval diagnostics
+
+Run summaries include:
+
+- total
+- passed
+- failed
+- pass_rate
+- avg_latency_sec
+- failed_eval_ids
+- avg_retrieved_count
+- avg_top_distance
+- avg_retry_count
+
+## Agent Log Directories
+
+The agent evaluation system separates artifacts by purpose.
+
+### `logs/runs/`
+
+This directory contains generated artifacts from actual evaluation runs.
+
+These files are machine-generated outputs and represent the current state of the system under test.
+
+### `logs/baselines/`
+
+This directory contains pinned baseline artifacts used for regression comparison.
+
+A baseline represents a known-good reference run.
+
+### `logs/regression_tests/`
+
+This directory contains intentional regression fixtures used to validate the regression comparison script.
+
+These are not real runs. They are test inputs for the comparison tooling.
+
+## RAG Evaluation
+
+The RAG evaluation flow tests the standalone RAG API directly.
+
+This layer is useful for isolating retrieval and answer behavior outside the agent orchestration layer.
+
+### Main files
+
+- `rag/rag_eval_queries_v1.json` — RAG evaluation dataset
+- `rag/rag_run_api_evals_v1.py` — offline RAG API evaluation runner
+- `rag/rag_run_retrieval_evals_v1.py` — retrieval-focused evaluation runner
+- `rag/analyze_rag_api_eval_logs.py` — analysis utility for RAG API logs
+- `rag/RAG_eval_log.md` — notes on earlier RAG evaluation iterations
+
+## Comparison Tools
+
+The `tools/` directory contains scripts that operate on evaluation outputs.
+
+### `tools/compare_agent_runs.py`
+
+This script compares two agent run summary JSON files and reports metric deltas.
+
+It is intended for regression detection and CI enforcement.
+
+It compares summary artifacts, not raw JSONL logs.
+
+Typical use:
+
+- compare a new run summary against a pinned baseline
+- fail if pass rate degrades beyond tolerance
+- print metric deltas for review
+
+## Typical Workflow
+
+A normal evaluation workflow looks like this:
+
+1. Run an offline evaluation
+2. Inspect the generated summary JSON
+3. Compare the new summary against a pinned baseline
+4. Detect regressions before merging or deploying changes
+
+## Running Evaluations
+
+Run the agent evaluation:
 
 ```bash
-python -m evals.rag_run_api_evals_v1
+python -m evals.agent.agent_run_evals_v1
 ```
 
-## Agent evals
+Run the RAG API evaluation:
 
-Run directly:
 ```bash
-python -m evals.agent_run_evals_v1
+python -m evals.rag.rag_run_api_evals_v1
 ```
 
-(No API server required; this invokes the agent graph directly.)
+Run the retrieval-focused RAG evaluation:
 
----
+```bash
+python -m evals.rag.rag_run_retrieval_evals_v1
+```
 
-# Philosophy
+Compare a new agent run against a baseline:
 
-These evals are:
+```bash
+python evals/tools/compare_agent_runs.py \
+  --baseline evals/agent/logs/baselines/<baseline_summary>.json \
+  --current evals/agent/logs/runs/<current_summary>.json
+```
 
-- Small
-- Deterministic
-- Cheap to run
-- Easy to extend
+## Design Principles
 
-They are not a benchmark suite — they are a regression and sanity-check tool for development.
+The evaluation system is built around a few principles:
 
-If you change:
-- Chunking
-- Embeddings
-- Distance thresholds
-- Agent logic
+- structured outputs over ad hoc inspection
+- reproducible summaries over vague impressions
+- pinned baselines over informal memory
+- regression detection over silent degradation
 
-You should rerun evals and compare results.
+This makes the repo more representative of real AI system engineering, where evaluation is part of the product lifecycle.
