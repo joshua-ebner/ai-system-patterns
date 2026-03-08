@@ -39,7 +39,7 @@ evals/
 │       ├── baselines/
 │       └── runs/
 ├── tools/
-│   └── compare_agent_runs.py
+│   └── compare_eval_runs.py
 └── README.md
 ```
 
@@ -132,7 +132,7 @@ This layer is useful for isolating retrieval and answer behavior outside the age
 
 The `tools/` directory contains scripts that operate on evaluation outputs.
 
-### `tools/compare_agent_runs.py`
+### `tools/compare_eval_runs.py`
 
 This script compares two agent run summary JSON files and reports metric deltas.
 
@@ -178,9 +178,9 @@ python -m evals.rag.rag_run_retrieval_evals_v1
 Compare a new agent run against a baseline:
 
 ```bash
-python evals/tools/compare_agent_runs.py \
-  --baseline evals/agent/logs/baselines/<baseline_summary>.json \
-  --current evals/agent/logs/runs/<current_summary>.json
+python evals/tools/compare_eval_runs.py \
+  --current evals/agent/logs/runs/<current_summary>.json \
+  --baseline evals/agent/logs/baselines/<baseline_summary>.json
 ```
 
 ## Design Principles
