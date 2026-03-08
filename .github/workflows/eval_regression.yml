@@ -1,0 +1,49 @@
+name: Eval Regression Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  eval-regression:
+    runs-on: ubuntu-latest
+
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Start RAG API
+        run: |
+          nohup uvicorn apps.rag.rag_api:app --host 127.0.0.1 --port 8000 > rag_api.log 2>&1 &
+          sleep 10
+
+      - name: Run agent evals
+        run: |
+          python -m evals.agent.agent_run_evals_v1
+
+      - name: Find latest summary
+        id: summary
+        run: |
+          latest_summary=$(ls -t evals/agent/logs/runs/*_summary.json | head -n 1)
+          echo "latest_summary=$latest_summary" >> $GITHUB_OUTPUT
+
+      - name: Compare against baseline
+        run: |
+          python evals/tools/compare_eval_runs.py \
+            --current "${{ steps.summary.outputs.latest_summary }}" \
+            --baseline evals/agent/logs/baselines/2026-02-25_22-12-21_v2_escalation_summary.json
+
