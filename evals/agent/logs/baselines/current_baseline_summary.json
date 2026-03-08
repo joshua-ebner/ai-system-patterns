@@ -1,0 +1,1 @@
+{  "run_id": "2026-02-25_22-12-21_v2_escalation",  "agent_version": "v2_escalation",  "rag_version": "v1",  "model": "gpt-4o-mini",  "git_commit": "e3bc651",  "total": 18,  "passed": 17,  "failed": 1,  "correct_refusals": 6,  "unexpected_refusals": 1,  "pass_rate": 0.9444444444444444,  "avg_latency_sec": 5.322481618987189,  "failed_eval_ids": [    "agent-012"  ]}

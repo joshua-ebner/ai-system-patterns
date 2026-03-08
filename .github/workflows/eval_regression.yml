@@ -45,5 +45,5 @@ jobs:
         run: |
           python evals/tools/compare_eval_runs.py \
             --current "${{ steps.summary.outputs.latest_summary }}" \
-            --baseline evals/agent/logs/baselines/2026-02-25_22-12-21_v2_escalation_summary.json
+            --baseline evals/agent/logs/baselines/current_baseline_summary.json
 
