@@ -146,6 +146,67 @@ Typical use:
 - fail if pass rate degrades beyond tolerance
 - print metric deltas for review
 
+## Evaluation Architecture
+
+The evaluation system is organized around five core pieces:
+
+### Dataset
+
+Evaluation datasets define the test cases for each layer.
+
+Examples:
+
+- `agent/agent_eval_queries_v1.json`
+- `rag/rag_eval_queries_v1.json`
+
+These datasets provide the fixed prompts and refusal expectations used during offline testing.
+
+### Run Logs
+
+Each evaluation run produces machine-readable artifacts under `logs/runs/`.
+
+For the agent evals, this includes:
+
+- per-example JSONL logs
+- a run-level summary JSON
+
+These artifacts make runs inspectable and reproducible.
+
+### Baselines
+
+Pinned baseline summaries live under `logs/baselines/`.
+
+These represent known-good reference runs and are used to detect regressions over time.
+
+### Regression Detection
+
+Regression detection is handled by:
+
+- `tools/compare_eval_runs.py`
+
+This compares a new run summary against a pinned baseline and checks for regressions in:
+
+- pass rate
+- failure count
+- latency
+- retry behavior
+
+### CI Enforcement
+
+The regression check is enforced automatically in GitHub Actions by:
+
+- `.github/workflows/eval_regression.yml`
+
+The CI workflow:
+
+1. restores or builds the vectorstore
+2. starts the RAG API
+3. runs the agent eval suite
+4. finds the newest summary
+5. compares it against the pinned baseline
+
+If a regression is detected, the workflow exits with a failure code.
+
 ## Typical Workflow
 
 A normal evaluation workflow looks like this:
