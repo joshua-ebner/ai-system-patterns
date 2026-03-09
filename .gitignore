@@ -33,11 +33,8 @@ data/processed/**/chunks.jsonl
 !data/processed/**/manifest.json
 
 # ---- Vector DBs ----
-# Keep the evaluation vector store fixture for Continuous Integration
-!data/vectorstore/
+data/vectorstore/*
 !data/vectorstore/README.md
-!data/vectorstore/langchain_db/
-!data/vectorstore/langchain_db/**
 
 # ---- System Logs ----
 /logs/

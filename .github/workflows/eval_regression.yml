@@ -26,6 +26,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Cache vectorstore
+        id: vectorstore-cache
+        uses: actions/cache@v4
+        with:
+          path: data/vectorstore
+          key: vectorstore-${{ hashFiles('data/raw/langchain/**', 'scripts/chunk_langchain_docs.py', 'scripts/embed_langchain_chunks.py', 'requirements.txt') }}
+
+      - name: Build vectorstore if cache miss
+        if: steps.vectorstore-cache.outputs.cache-hit != 'true'
+        run: |
+          python scripts/chunk_langchain_docs.py
+          python scripts/embed_langchain_chunks.py
+
       - name: Start RAG API
         run: |
           nohup uvicorn apps.rag.rag_api:app --host 127.0.0.1 --port 8000 > rag_api.log 2>&1 &
