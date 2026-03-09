@@ -47,6 +47,8 @@ from apps.agent.agent_graph import agent
 
 import subprocess
 
+from langsmith import traceable
+
 
 # -------------------------
 # Config
@@ -144,6 +146,16 @@ def write_run_summary(
 
     print(f"\nSummary written to {output_path}")
 
+@traceable(name="agent_eval_case")
+def run_agent_eval(query: str):
+    return agent.invoke(
+        {
+            "messages": [HumanMessage(content=query)],
+            "rag_result": None,
+            "retry_count": 0,
+        }
+    )
+
 
 
 # -------------------------
@@ -198,12 +210,8 @@ def main():
         retry_count = None
 
         try:
-            result = agent.invoke(
-                {"messages": [HumanMessage(content=query)],
-                 "rag_result": None,
-                 "retry_count": 0,
-                 }
-            )
+            result = run_agent_eval(query)
+            
             answer = result["messages"][-1].content
             rag_result = result.get("rag_result") or {}
             retrieved_count = rag_result.get("retrieved_count")
