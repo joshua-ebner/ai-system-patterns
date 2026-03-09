@@ -25,7 +25,6 @@ data/raw/**
 !data/raw/**/README.md
 
 # ---- PROCESSED corpora (commit only samples/docs, not full text caches) ----
-data/processed/**/chunks.jsonl
 !data/processed/
 !data/processed/README.md
 !data/processed/**/README.md
