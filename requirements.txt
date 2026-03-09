@@ -7,3 +7,4 @@ langchain-chroma
 fastapi
 uvicorn
 requests
+langchain-text-splitters
