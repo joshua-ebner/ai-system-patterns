@@ -30,3 +30,15 @@ services:
       - rag-api
     stdin_open: true
     tty: true
+
+  mcp-api:
+    build:
+      context: .
+    command: uvicorn apps.mcp.mcp_api:app --host 0.0.0.0 --port 8001
+    container_name: mcp-api
+    env_file:
+      - .env
+    ports:
+      - "8001:8001"
+    depends_on:
+      - rag-api
