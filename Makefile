@@ -1,4 +1,4 @@
-.PHONY: rag agent down build
+.PHONY: rag agent down build mcp-local rag-local
 
 build:
 	docker compose build
@@ -15,3 +15,10 @@ agent:
 
 down:
 	docker compose down
+
+# --- Local dev (non-docker) ---
+mcp-local:
+	uvicorn apps.mcp.mcp_api:app --reload --port 8001
+
+rag-local:
+	uvicorn apps.rag.rag_api:app --reload --port 8000
