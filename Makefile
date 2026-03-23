@@ -1,4 +1,4 @@
-.PHONY: rag agent down build mcp-local rag-local
+.PHONY: rag agent down build mcp-local rag-local up
 
 build:
 	docker compose build
@@ -15,6 +15,9 @@ agent:
 
 down:
 	docker compose down
+
+up:
+	docker compose up --build
 
 # --- Local dev (non-docker) ---
 mcp-local:
